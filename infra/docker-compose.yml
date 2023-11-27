@@ -1,0 +1,33 @@
+version: '3.7'
+
+services:
+  # ここにgoもしくはrubyのアプリケーションコンテナを配置する予定
+  # app:
+  #   image: ruby:3.2
+  #   container_name: app
+  #   volumes:
+  #     - ../app:/app
+  #   ports:
+  #     - '3000:3000'
+  #   tty: true
+  #   working_dir: /app
+  database:
+    build:
+      context: .
+      dockerfile: Dockerfile.mysql
+    platform: linux/amd64
+    container_name: database
+    command: mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    ports: # 他のコンテナからmysqlクライアントを用いてアクセスしたい場合は、portを公開する必要あり
+      - "3308:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: isucon
+      TZ: "Asia/Tokyo"
+    volumes:
+      - ./config/my.cnf:/etc/mysql/conf.d/my.cnf
+      - data-volume:/var/lib/mysql
+      - ../sql:/usr/scripts
+
+volumes:
+  data-volume:

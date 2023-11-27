@@ -1,0 +1,6 @@
+#!/bin/bash
+
+cd $(dirname $0)/../
+
+# 第一引数に指定したサービスのshellを実行する
+docker exec -it $1 bash
