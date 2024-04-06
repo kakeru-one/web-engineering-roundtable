@@ -10,3 +10,23 @@
   - railsアプリケーション上でどのように使えるか？
   - ISUCONでどのように使えるか？
   - 直叩きSQLでどのようなシーンで使えそうか？（実務のちょっとした調査とか）
+
+## seedデータについて
+### seedデータを挿入するSQLを生成する方法
+**※ ruby2.7以上まであげてください。**
+```bash
+# prefectureの場合
+$ ruby lib/generate_bulk_sql/prefectures.rb > sql/seed/insert/prefectures.sql
+
+# employee_rostersの場合
+$ ruby lib/generate_bulk_sql/employee_rosters.rb > sql/seed/insert/employee_rosters.sql
+
+# sales_logsの場合
+$ ruby lib/generate_bulk_sql/sales_logs.rb > sql/seed/insert/sales_logs.sql
+```
+
+### seedデータ挿入方法
+```bash
+$ docker exec -it database bin/bash
+$ mysql -u root -proot demo < usr/scripts/seed/insert/employee_rosters.sql
+```
