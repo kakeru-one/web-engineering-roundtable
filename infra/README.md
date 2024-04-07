@@ -2,6 +2,12 @@
 ## 環境
 MySQL 8.0.30
 Docker(Debian)
+
+## MySQLにログインする方法
+```bash
+$ mysql -u root -h 127.0.0.1 --port 3308 -proot
+```
+
 ## setup方法
 ```bash
 # まずbuildする
