@@ -45,7 +45,7 @@ module EmployeeRosters
     def self.print_queries(total_count, batch_size = DEFAULT_BATCH_SIZE)
       (1..total_count).step(batch_size) do |offset|
         count = [batch_size, total_count - offset + 1].min
-        $stdout.puts EmployeeRosterQueryBuilder.build(count)
+        $stdout.puts QueryBuilder.build(count)
       end
     end
   end
@@ -53,5 +53,5 @@ end
 
 if __FILE__ == $0
   # ARGV[0]にはINSERTしたいレコード数が入る
-  EmployeeRosters::QueryPrinter.print_queries(ARGV[0])
+  EmployeeRosters::QueryPrinter.print_queries(ARGV[0].to_i)
 end
