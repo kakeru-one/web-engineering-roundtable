@@ -1,5 +1,7 @@
 # apt-get出来る様にdebian版を使う。
-FROM mysql:8.0.30-debian
+FROM mysql:8.0-debian
+RUN apt-get update && apt-get install -y wget
+RUN wget -qO- 'https://repo.mysql.com/RPM-GPG-KEY-mysql-2023' | gpg --import
 # コンテナ内で日本語が打てるようにlocalesを変更と、いらないファイル削除する
 RUN apt-get update \
     && apt-get install -y locales \
