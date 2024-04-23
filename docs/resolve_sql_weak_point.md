@@ -50,6 +50,33 @@ WHERE id IN (
   - Exists句内のサブクエリは、主表のWhere句が実行されたあとに、実行される。
 - したがって、主表と従属表の絞り込みの度合いによって、使い分ける必要がある。
 
+### 前提知識
+#### 相関サブクエリ
+非上場企業に所属する従業員数を取得する為のクエリを考えるとする。
+
+まずは普通のサブクエリを使おうとした例。
+以下のようなクエリだと、サブクエリで複数行返すので、エラーになる。
+```sql
+SELECT count(*)
+FROM employees  
+WHERE (
+  SELECT is_listed
+  FROM companies 
+) IS FALSE;
+```
+
+次に、相関サブクエリを使おうとした例。
+そこで、以下のようなWHERE句の条件をつけると、1行だけ帰るようになり、クエリが正しく動く。
+```sql
+SELECT count(*)
+FROM employees  
+WHERE (
+  SELECT is_listed
+  FROM companies 
+  WHERE id = employees.company_id 
+) IS FALSE;
+```
+
 ## indexについて
 ### 前提
 - 以下の構成を考える。
