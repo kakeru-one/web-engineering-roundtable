@@ -53,10 +53,11 @@ WHERE id IN (
 #### Tips
 以下のように、JOINを使って書くこともできる。
 （後で書きたいが、ON句にWHERE句に書いた条件を書いた方が良かったかも？）
+今回は主表しか使わないので、サブクエリの方が可読性が高いと言える。
 ```sql
 SELECT * FROM songs s
 JOIN attr
-ON s.id = attr.s_id;
+ON s.id = attr.s_id
 WHERE s.発表年 > 1990
 AND s.販売数 > 300000;
 ```
