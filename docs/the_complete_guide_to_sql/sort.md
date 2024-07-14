@@ -11,8 +11,23 @@
 - WHERE句でかける条件は、HAVING句に書かない方が効率がいい。
   - GROUP BY句は、WHERE句の後に実行される。よって、WHERE句で実行すると絞り込んだ状態でGROUP BYによるソートが行われ、ソートの負荷が軽減される。
   - WHERE句ではindexが利用できる。対して、HAVING句で絞り込むと、GROUP BY句によって生成されたビューに対して絞り込みを行うのでindexが引き継がれず、使われない。
+    - SQLの実行順序に関する参考: https://speakerdeck.com/soudai/pgcon21j-tutorial?slide=15
 
-参考: https://speakerdeck.com/soudai/pgcon21j-tutorial?slide=72
+### HAVINGを用いたSQL
+```sql
+SELECT sale_date, SUM(quantity)
+  FROM sales_histories
+  GROUP BY sale_date
+HAVING sale_date = '2007-10-01';
+```
+
+### WHEREを用いたSQL
+```sql
+SELECT sale_date, SUM(quantity)
+  FROM sales_histories
+WHERE sale_date = '2007-10-01';
+GROUP BY sale_date
+```
 
 ## 集約関数
 - MAX, MINでテーブルを指定するのではなく、インデックスが貼られたユニークなカラムを指定するようにする。
