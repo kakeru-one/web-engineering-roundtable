@@ -1,5 +1,3 @@
-version: '3.7'
-
 services:
   # ここにgoもしくはrubyのアプリケーションコンテナを配置する予定
   # app:
