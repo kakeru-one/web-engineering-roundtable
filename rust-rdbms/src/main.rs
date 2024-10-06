@@ -3,30 +3,31 @@ use std::fs::{File, OpenOptions};
 use std::io::{self, prelude::*, SeekFrom};
 use std::path::Path;
 
-// fn main() -> io::Result<()> {
-//     // DiskManagerを初期化
-//     let mut disk_manager = DiskManager::open("heap_file.txt")?;
+fn main() -> io::Result<()> {
+    // DiskManagerを初期化
+    let mut disk_manager = DiskManager::open("heap_file.txt")?;
 
-//     // 新しいページを割り当てる
-//     let page_id = disk_manager.allocate_page();
+    // 新しいページを割り当てる
+    let page_id = disk_manager.allocate_page();
 
-//     // ページにデータを書き込む
-//     let data_to_write = [0u8; PAGE_SIZE]; // 4096バイトのデータ
-//     disk_manager.write_page_data(page_id, &data_to_write)?;
+    // ページにデータを書き込む
+    let data_to_write = [0u8; PAGE_SIZE]; // 4096バイトのデータ
+    disk_manager.write_page_data(page_id, &data_to_write)?;
 
-//     // ページからデータを読み込む
-//     let mut data_to_read = [0u8; PAGE_SIZE];
-//     disk_manager.read_page_data(page_id, &mut data_to_read)?;
+    // ページからデータを読み込む
+    let mut data_to_read = [0u8; PAGE_SIZE];
+    disk_manager.read_page_data(page_id, &mut data_to_read)?;
 
-//     // データを同期
-//     disk_manager.sync()?;
+    // データを同期
+    disk_manager.sync()?;
 
-//     Ok(())
-// }
-
-fn main() {
-    println!("{}", u64::MAX)
+    Ok(())
 }
+
+// NOTE: デバッグ用のコード
+// fn main() {
+//     println!("{}", u64::MAX)
+// }
 
 #[derive(PartialEq, Copy, Clone)]
 pub struct PageId(pub u64);
@@ -94,16 +95,25 @@ impl DiskManager {
         Self::new(heap_file)
     }
 
+    // ヒープファイルの最後尾のデータを取得する
+        // ヒープファイルとは1つのファイルで、pageとはヒープファイル内にあるデータを4096byteで区切ったもの
     pub fn read_page_data(&mut self, page_id: PageId, data: &mut [u8]) -> io::Result<()> {
         let offset = PAGE_SIZE as u64 * page_id.to_u64();
         self.heap_file.seek(SeekFrom::Start(offset))?;
         self.heap_file.read_exact(data)
     }
 
+    // ヒープファイルの最後尾にdataを挿入する
+        // ヒープファイルとは1つのファイルで、pageとはヒープファイル内にあるデータを4096byteで区切ったもの
     pub fn write_page_data(&mut self, page_id: PageId, data: &[u8]) -> io::Result<()> {
-        let offset = PAGE_SIZE as u64 * page_id.to_u64();
-        self.heap_file.seek(SeekFrom::Start(offset))?;
-        self.heap_file.write_all(data)
+        // dataは4096byteの単位で渡ってくる
+        // オフセットを計算
+        // page_id = 2, last_page_byte=4096*2 = offset
+        let offset = PAGE_SIZE as u64 * page_id.to_u64(); // u64とは符号なしの整数型
+        // ページ先頭へシーク
+        self.heap_file.seek(SeekFrom::Start(offset))?; // 先頭から4096*2byte進んだ位置にカーソルを合わせる
+        // データを読み出す
+        self.heap_file.write_all(data) // データを書き込む
     }
 
     pub fn allocate_page(&mut self) -> PageId {
@@ -112,8 +122,8 @@ impl DiskManager {
         PageId(page_id)
     }
 
-    pub fn sync(&mut self) -> io::Result<()> {
-        self.heap_file.flush()?;
-        self.heap_file.sync_all()
-    }
+    // pub fn sync(&mut self) -> io::Result<()> {
+    //     self.heap_file.flush()?;
+    //     self.heap_file.sync_all()
+    // }
 }
