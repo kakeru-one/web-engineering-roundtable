@@ -68,10 +68,56 @@ $ mysql -u root -h 127.0.0.1 --port 3306 -proot app_development
   - ADD COLUMNとDROP COLUMNで許可されている。（カラム追加や削除だけならメタデータ変えるだけでよさそうだよね。ただ、DEFUALT制約があるとそうはいかなさそう。）
 
 ### 疑問
-- フォールバックするのはオンラインDDLの時だけ？それとも他のDDLの時も？
+- 排他MDLから共有MDLにフォールバックするのはオンラインDDLの時だけ？それとも他のDDLの時も？
+  - 以下の記事に書いてあるけど、通常のDDLでも起きそう。
+    - https://gihyo.jp/article/2022/09/mysql-rcn0180
 
 ## innoDBロック
-- Draft
+- 行ロック。InnoDBの場合はクラスタインデックスで行データ本体もB+Treeインデックスの構造で保存されているので、インデックスロックと呼ばれたりする。
+
+### ロックの強さ
+排他（X）ロック・共有（S）ロックが存在する。
+- UPDATE/INSERT/DELETEする行や、FOR UPDATEする行は排他ロックがかかる。
+- 以下の条件下では共有ロックをとる。
+  - `FOR SHARE`
+  - `INSERT INTO .. SELECT ..`（のSELECT部分の行）
+    ```sql
+    INSERT INTO backup_employees (name, position)
+    SELECT name, position FROM employees;
+    ```
+  - `CREATE TABLE .. AS SELECT ..`（のSELECT部分の行）
+    ```sql
+    CREATE TABLE employees (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      name VARCHAR(100),
+      position VARCHAR(100)
+    );
+
+    INSERT INTO employees (name, position) VALUES
+    ('Alice', 'Developer'),
+    ('Bob', 'Designer'),
+    ('Charlie', 'Manager');
+
+    CREATE TABLE developer_employees AS
+    SELECT name, position FROM employees
+    WHERE position = 'Developer';
+    ```
+  - トランザクション分離レベルによる共有ロック
+  - 子テーブルにINSERT/UPDATEする際には、親テーブルの関連を持っている行にも共有ロックがかかる。
+- それ以外のSELECT文ではロックフリーとなる。
+
+### ロックの範囲
+ギャップなしロック・ギャップロック・レコードロックが存在する。
+- ギャップなしロックは、インデックスレコードそのものだけをロックする。
+  - `DELETE .. WHERE id = 1`と`UPDATE .. WHERE id = 1`は後に実行した方が待たされる。
+    - この時、idがPRIMARY KEYとすると、ギャップなし排他ロックの競合が起こる。（ロックの期間はトランザクション終了まで）
+- ギャップロックは、インデックスレコードの手前の隙間だけをロックする。
+- レコードロックは、インデックスレコードとその手前のギャップを同時にロックする。
+  - innoDBの文脈で「レコードロック」と言った場合、ギャップを含むロックということである。
+- ネクストキーロックは「レコードロック」 + 「次のキーのギャップロック」
+- インデックス上には常に2つの擬似レコードが存在する。（ちなみに、実レコードが一つでもあるとgapという領域ができる。）
+  - infimum => 無限小
+  - supremum => 無限大
 
 ## 参考資料
 - https://speakerdeck.com/yoku0825/mysqlnorotukunozhong-lei-tosonojing-he
